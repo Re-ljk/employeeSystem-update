@@ -2,20 +2,13 @@
   <div class="emp-management-container">
     <!-- 顶部操作按钮 -->
     <div class="toolbar">
-      <el-button type="primary" @click="addEmployee">添加员工</el-button>
+      <el-button type="primary" @click="gotoAdd">添加员工</el-button>
       <el-button type="danger" @click="deleteSelected">删除选中</el-button>
     </div>
 
     <!-- 员工列表展示 -->
-    <el-table
-      ref="multipleTable"
-      :data="employeeList"
-      tooltip-effect="dark"
-      border
-      style="width: 80%; margin: 0 auto;"
-      @selection-change="handleSelectionChange"
-      row-key="id"
-    >
+    <el-table ref="multipleTable" :data="employeeList" tooltip-effect="dark" border style="width: 80%; margin: 0 auto;"
+      @selection-change="handleSelectionChange" row-key="id">
       <el-table-column type="selection" width="50"></el-table-column>
       <el-table-column label="序号" type="index" align="center" width="60"></el-table-column>
       <el-table-column prop="name" label="姓名" align="center"></el-table-column>
@@ -23,34 +16,18 @@
       <el-table-column prop="entryDate" label="入职日期" align="center"></el-table-column>
       <el-table-column prop="deptName" label="部门名称" align="center"></el-table-column>
       <el-table-column label="操作" align="center" width="150">
-        <template slot-scope="scope">
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            size="mini"
-            @click="editEmployee(scope.row)"
-            style="margin-right: 10px;"
-          ></el-button>
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            size="mini"
-            @click="deleteEmployee(scope.row.id)"
-          ></el-button>
+        <template #default="scope">
+          <el-button type="primary" icon="el-icon-edit" size="mini" @click="editEmployee(scope.row)"
+            style="margin-right: 10px;"></el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteEmployee(scope.row.id)"></el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
-    <el-pagination
-      background
-      layout="sizes, prev, pager, next, total"
-      :page-size="page.size"
-      :current-page="page.current"
-      :total="page.total"
-      @current-change="handlePageChange"
-      style="text-align: center; margin-top: 20px;"
-    ></el-pagination>
+    <el-pagination background layout="sizes, prev, pager, next, total" :page-size="page.size"
+      :current-page="page.current" :total="page.total" @current-change="handlePageChange"
+      style="text-align: center; margin-top: 20px;"></el-pagination>
   </div>
 </template>
 
@@ -90,7 +67,7 @@ export default {
             ...employee,
             deptName: employee.dept ? employee.dept.name : "无部门", // 提取部门名称
             entryDate: employee.entryDate
-              ? employee.entryDate.slice(0, 3).join("-") // 格式化入职日期
+              ? employee.entryDate.slice(0, 10) // 格式化入职日期
               : "未知",
           }));
         } else {
@@ -113,74 +90,72 @@ export default {
       this.multipleSelection = selection;
     },
 
-    // 添加员工
-    addEmployee() {
-      this.$router.push({ name: "addEmployee" }); // 假设你有一个添加员工的页面
+    // 跳转到添加员工页面
+    gotoAdd() {
+      this.$router.push("/employee/add");
     },
 
-// 批量删除选中员工
-deleteSelected() {
-  if (this.multipleSelection.length === 0) {
-    this.$message.warning("请选择要删除的员工");
-    return;
-  }
-  this.$confirm("确定删除选中的员工吗?", "批量删除", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(() => {
-      const ids = this.multipleSelection.map((item) => item.id);
+    // 批量删除选中员工
+    deleteSelected() {
+      if (this.multipleSelection.length === 0) {
+        this.$message.warning("请选择要删除的员工");
+        return;
+      }
+      this.$confirm("确定删除选中的员工吗?", "批量删除", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          const ids = this.multipleSelection.map((item) => item.id);
 
-      this.$axios
-        .delete("/api/employees/delByIds", { data: ids })
-        .then((res) => {
-          // 如果后端返回的 code 为 1，说明删除成功
-          if (res.data && res.data.code === 1) {
-            this.$message.success("批量删除成功"); // 始终使用中文提示
-            this.getEmployeeList(); // 删除成功后刷新列表
-          } else {
-            this.$message.error(res.data.msg || "批量删除失败"); // 如果有返回的 msg，则显示，否则默认提示
-          }
+          this.$axios
+            .delete("/api/employees/delByIds", { data: ids })
+            .then((res) => {
+              if (res.data && res.data.code === 1) {
+                this.$message.success("批量删除成功");
+                this.getEmployeeList();
+              } else {
+                this.$message.error(res.data.msg || "批量删除失败");
+              }
+            })
+            .catch((error) => {
+              console.error("批量删除失败:", error);
+              this.$message.error("批量删除失败，请稍后重试");
+            });
         })
-        .catch((error) => {
-          console.error("批量删除失败:", error);
-          this.$message.error("批量删除失败，请稍后重试");
+        .catch(() => {
+          this.$message.info("已取消删除");
         });
-    })
-    .catch(() => {
-      this.$message.info("已取消删除");
-    });
-},
+    },
 
-// 删除单个员工
-deleteEmployee(id) {
-  this.$confirm("确定删除该员工吗?", "删除员工", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(() => {
-      this.$axios
-        .delete(`/api/employees/delete/${id}`)
-        .then((res) => {
-          // 如果后端返回的 code 为 1，说明删除成功
-          if (res.data && res.data.code === 1) {
-            this.$message.success("删除成功"); // 始终使用中文提示
-            this.getEmployeeList(); // 删除成功后刷新列表
-          } else {
-            this.$message.error(res.data.msg || "删除失败"); // 如果有返回的 msg，则显示，否则默认提示
-          }
+    // 删除单个员工
+    deleteEmployee(id) {
+      this.$confirm("确定删除该员工吗?", "删除员工", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.$axios
+            .delete(`/api/employees/delete/${id}`)
+            .then((res) => {
+              if (res.data && res.data.code === 1) {
+                this.$message.success("删除成功");
+                this.getEmployeeList();
+              } else {
+                this.$message.error(res.data.msg || "删除失败");
+              }
+            })
+            .catch((error) => {
+              console.error("删除失败:", error);
+              this.$message.error("删除失败，请稍后重试");
+            });
         })
-        .catch((error) => {
-          console.error("删除失败:", error);
-          this.$message.error("删除失败，请稍后重试");
+        .catch(() => {
+          this.$message.info("已取消删除");
         });
-    })
-    .catch(() => {
-      this.$message.info("已取消删除");
-    });
-},
+    },
 
     // 编辑员工
     editEmployee(row) {

@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import EmployeeList from '@/views/employee/EmployeeList.vue';
 import EditEmployee from '@/views/employee/EditEmployee.vue';
-
+import AddEmployee from '@/views/employee/AddEmployee.vue';
 Vue.use(Router);
 
 const routes = [
@@ -13,6 +13,10 @@ const routes = [
   {
     path: '/employee/list',
     component: EmployeeList,
+  },
+  {
+    path: '/employee/add',
+    component: AddEmployee,
   },
   {
     path: '/employee/edit/:id',

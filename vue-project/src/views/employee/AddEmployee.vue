@@ -4,7 +4,7 @@
       :model="employee"
       :rules="rules"
       ref="employeeForm"
-      label-width="80px"
+      label-width="100px"
     >
       <!-- 姓名 -->
       <el-form-item label="姓名" prop="name">
@@ -33,16 +33,33 @@
         <el-date-picker
           v-model="employee.entryDate"
           type="date"
-          placeholder="选择入职日期"
+          placeholder="请选择入职日期"
           format="yyyy-MM-dd"
           value-format="yyyy-MM-dd"
           :disabled-date="disableFutureDates"
         ></el-date-picker>
       </el-form-item>
 
+      <!-- 部门名称 -->
+      <el-form-item label="部门名称" prop="deptId">
+        <el-select v-model="employee.deptId" placeholder="请选择部门">
+          <el-option
+            v-for="dept in departmentList"
+            :key="dept.id"
+            :label="dept.name"
+            :value="dept.id"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+
       <!-- 提交按钮 -->
       <el-form-item style="text-align: center;">
-        <el-button :loading="loading" type="primary" @click="onSubmit">
+        <el-button
+          :loading="loading"
+          type="primary"
+          @click="onSubmit"
+          plain
+        >
           添加员工
         </el-button>
       </el-form-item>
@@ -51,15 +68,19 @@
 </template>
 
 <script>
+import dayjs from "dayjs"; // 用于日期格式化
+
 export default {
   data() {
     return {
       employee: {
-        name: "",
-        age: "",
-        gender: "",
-        entryDate: "",
+        name: "", // 姓名
+        age: null, // 年龄
+        gender: "", // 性别
+        entryDate: "", // 入职日期
+        deptId: null, // 部门ID
       },
+      departmentList: [], // 部门数据列表
       loading: false, // 加载状态
       rules: {
         name: [{ required: true, message: "请输入姓名", trigger: "blur" }],
@@ -77,28 +98,54 @@ export default {
         entryDate: [
           { required: true, message: "请选择入职日期", trigger: "change" },
         ],
+        deptId: [{ required: true, message: "请选择部门", trigger: "change" }],
       },
     };
+  },
+  mounted() {
+    this.fetchDepartments(); // 页面加载时获取部门数据
   },
   methods: {
     // 禁止选择未来日期
     disableFutureDates(date) {
-      return date > new Date();
+      return date > new Date(); // 禁止选择今天之后的日期
+    },
+
+    // 模拟加载部门数据
+    async fetchDepartments() {
+      // 模拟异步加载
+      setTimeout(() => {
+        this.departmentList = [
+          { id: 1, name: "开发部" },
+          { id: 2, name: "教研部" },
+          { id: 3, name: "教务部" },
+          { id: 4, name: "设计部" },
+          { id: 5, name: "运营部" },
+        ];
+      }, 500); // 模拟 500ms 延迟
     },
 
     // 提交表单
-    onSubmit() {
+    async onSubmit() {
       this.$refs.employeeForm.validate(async (valid) => {
         if (valid) {
-          this.loading = true; // 启用加载
+          this.loading = true; // 启用加载状态
           try {
+            // 格式化日期为 ISO8601
+            const formattedEmployee = {
+              ...this.employee,
+              entryDate: dayjs(this.employee.entryDate).toISOString(),
+            };
+
+            // 发送请求
             const response = await this.$axios.post(
               "/api/employees/add",
-              this.employee
+              formattedEmployee
             );
+
             if (response.data && response.data.code === 1) {
               this.$message.success("添加员工成功！");
-              this.resetForm(); // 添加成功后重置表单
+              this.resetForm(); // 清空表单
             } else {
               this.$message.error(response.data.msg || "添加员工失败");
             }
@@ -106,12 +153,24 @@ export default {
             console.error("添加员工失败:", error);
             this.$message.error("添加员工失败，请稍后重试");
           } finally {
-            this.loading = false; // 关闭加载
+            this.loading = false; // 关闭加载状态
           }
         } else {
           this.$message.warning("请完善表单信息后再提交");
         }
       });
+    },
+
+    // 重置表单
+    resetForm() {
+      this.employee = {
+        name: "",
+        age: null,
+        gender: "",
+        entryDate: "",
+        deptId: null,
+      };
+      this.$refs.employeeForm.resetFields();
     },
   },
 };
@@ -122,22 +181,26 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* 占满整个页面高度 */
-  background-color: #f5f5f5; /* 可选：背景颜色 */
+  height: 100vh;
+  background-color: #f9f9f9;
   padding: 20px;
   box-sizing: border-box;
 }
 
-el-form {
-  width: 100%; /* 占用可用宽度 */
-  max-width: 400px; /* 设置最大宽度以控制表单大小 */
-  background-color: white;
+.el-form {
+  width: 100%;
+  max-width: 400px;
+  background-color: #ffffff;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 可选：添加阴影 */
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-el-form-item {
+.el-form-item {
   margin-bottom: 20px;
+}
+
+.el-button {
+  width: 100%;
 }
 </style>

@@ -1,69 +1,71 @@
 <template>
-  <div class="form-container">
-    <el-form
-      :model="employee"
-      :rules="rules"
-      ref="employeeForm"
-      label-width="100px"
-    >
-      <!-- 姓名 -->
-      <el-form-item label="姓名" prop="name">
-        <el-input v-model="employee.name" placeholder="请输入姓名"></el-input>
-      </el-form-item>
+  <div class="form-wrapper">
+    <div class="form-container">
+      <el-form
+        :model="employee"
+        :rules="rules"
+        ref="employeeForm"
+        label-width="100px"
+      >
+        <!-- 姓名 -->
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="employee.name" placeholder="请输入姓名"></el-input>
+        </el-form-item>
 
-      <!-- 年龄 -->
-      <el-form-item label="年龄" prop="age">
-        <el-input
-          v-model.number="employee.age"
-          type="number"
-          placeholder="请输入年龄"
-        ></el-input>
-      </el-form-item>
+        <!-- 年龄 -->
+        <el-form-item label="年龄" prop="age">
+          <el-input
+            v-model.number="employee.age"
+            type="number"
+            placeholder="请输入年龄"
+          ></el-input>
+        </el-form-item>
 
-      <!-- 性别 -->
-      <el-form-item label="性别" prop="gender">
-        <el-select v-model="employee.gender" placeholder="请选择性别">
-          <el-option label="男" value="male"></el-option>
-          <el-option label="女" value="female"></el-option>
-        </el-select>
-      </el-form-item>
+        <!-- 性别 -->
+        <el-form-item label="性别" prop="gender">
+          <el-select v-model="employee.gender" placeholder="请选择性别">
+            <el-option label="男" value="男"></el-option>
+            <el-option label="女" value="女"></el-option>
+          </el-select>
+        </el-form-item>
 
-      <!-- 入职日期 -->
-      <el-form-item label="入职日期" prop="entryDate">
-        <el-date-picker
-          v-model="employee.entryDate"
-          type="date"
-          placeholder="请选择入职日期"
-          format="yyyy-MM-dd"
-          value-format="yyyy-MM-dd"
-          :disabled-date="disableFutureDates"
-        ></el-date-picker>
-      </el-form-item>
+        <!-- 入职日期 -->
+        <el-form-item label="入职日期" prop="entryDate">
+          <el-date-picker
+            v-model="employee.entryDate"
+            type="date"
+            placeholder="请选择入职日期"
+            format="yyyy-MM-dd"
+            value-format="yyyy-MM-dd"
+            :disabled-date="disableFutureDates"
+          ></el-date-picker>
+        </el-form-item>
 
-      <!-- 部门名称 -->
-      <el-form-item label="部门名称" prop="deptId">
-        <el-select v-model="employee.deptId" placeholder="请选择部门">
-          <el-option
-            v-for="dept in departmentList"
-            :key="dept.id"
-            :label="dept.name"
-            :value="dept.id"
-          ></el-option>
-        </el-select>
-      </el-form-item>
+        <!-- 部门名称 -->
+        <el-form-item label="部门名称" prop="deptId">
+          <el-select v-model="employee.deptId" placeholder="请选择部门">
+            <el-option
+              v-for="dept in departmentList"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
 
-      <!-- 提交按钮 -->
-      <el-form-item style="text-align: center;">
-        <el-button
-          :loading="loading"
-          type="primary"
-          @click="onSubmit"
-          plain
-        >
-          添加员工
-        </el-button>
-      </el-form-item>
-    </el-form>
+        <!-- 提交按钮 -->
+        <el-form-item style="text-align: center;">
+          <el-button
+            :loading="loading"
+            type="primary"
+            @click="onSubmit"
+            class="custom-button"
+          >
+            <i class="el-icon-plus"></i> 添加员工
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </div>
   </div>
 </template>
 
@@ -131,10 +133,13 @@ export default {
         if (valid) {
           this.loading = true; // 启用加载状态
           try {
-            // 格式化日期为 ISO8601
+            // 格式化日期为 ISO8601，添加时间字段
             const formattedEmployee = {
               ...this.employee,
               entryDate: dayjs(this.employee.entryDate).toISOString(),
+              gender: this.employee.gender, // 性别为中文
+              create_time: dayjs().format("YYYY-MM-DD HH:mm:ss"), // 默认当前时间
+              update_time: dayjs().format("YYYY-MM-DD HH:mm:ss"), // 默认当前时间
             };
 
             // 发送请求
@@ -177,17 +182,19 @@ export default {
 </script>
 
 <style scoped>
-.form-container {
+/* 外层容器：全屏白色背景，表单居中 */
+.form-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f9f9f9;
-  padding: 20px;
-  box-sizing: border-box;
+  background-color: #ffffff;
+  margin: 0;
+  padding: 0;
 }
 
-.el-form {
+/* 表单容器样式 */
+.form-container {
   width: 100%;
   max-width: 400px;
   background-color: #ffffff;
@@ -200,7 +207,24 @@ export default {
   margin-bottom: 20px;
 }
 
-.el-button {
+.custom-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  height: 40px;
+  font-size: 14px;
+  background-color: #409eff;
+  color: white;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.custom-button:hover {
+  background-color: #66b1ff;
+}
+
+.custom-button i {
+  margin-right: 5px;
 }
 </style>

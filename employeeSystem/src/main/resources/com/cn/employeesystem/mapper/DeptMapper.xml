@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cn.employeesystem.mapper.DeptMapper">
+    <select id="findAll" resultType="com.cn.employeesystem.entity.Dept">
+        select * from dept limit #{offset},#{pageSize}
+    </select>
+    <select id="getTotalCount" resultType="int">
+        select count(*) from dept
+    </select>
+    <select id="findDeptById" parameterType="java.lang.Long" resultType="com.cn.employeesystem.entity.Dept">
+        select * from dept where id = #{id}
+    </select>
+    <delete id="deleteDeptById" parameterType="Long">
+        DELETE FROM dept WHERE id = #{id}
+    </delete>
+
+</mapper>

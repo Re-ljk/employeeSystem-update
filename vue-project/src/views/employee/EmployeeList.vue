@@ -59,18 +59,13 @@ export default {
   data() {
     return {
       page: {
-        records: [],
-        total: 0,
-        size: 5,
-        current: 1,
+        records: [], // 后端返回的分页记录
+        total: 0, // 数据总数
+        size: 5, // 每页大小
+        current: 1, // 当前页
       },
-<<<<<<< HEAD
-      employeeList: [],
-      multipleSelection: [],
-=======
       employeeList: [], // 员工数据列表
       multipleSelection: [], // 批量选中的员工
->>>>>>> 288fcb7eaed4a463b76678859dc4b94b34fb2541
     };
   },
   mounted() {
@@ -86,14 +81,24 @@ export default {
             pageSize: this.page.size,
           },
         });
-<<<<<<< HEAD
-        this.page = response.data.data;
-=======
-        this.page = response.data.data; // 假设返回的data是包含分页信息的对象
->>>>>>> 288fcb7eaed4a463b76678859dc4b94b34fb2541
-        this.employeeList = this.page.records;
+
+        // 判断接口返回的数据是否正常
+        if (response.data && response.data.code === 1) {
+          const pageData = response.data.data;
+          this.page = pageData;
+          this.employeeList = pageData.records.map((employee) => ({
+            ...employee,
+            deptName: employee.dept ? employee.dept.name : "无部门", // 提取部门名称
+            entryDate: employee.entryDate
+              ? employee.entryDate.slice(0, 3).join("-") // 格式化入职日期
+              : "未知",
+          }));
+        } else {
+          this.$message.error(response.data.msg || "查询列表失败");
+        }
       } catch (error) {
-        this.$message.error("查询列表失败");
+        console.error("查询列表失败:", error);
+        this.$message.error("查询列表失败，请稍后重试");
       }
     },
 
@@ -102,59 +107,6 @@ export default {
       this.page.current = page;
       this.getEmployeeList();
     },
-<<<<<<< HEAD
-    handleSelectionChange(selection) {
-      this.multipleSelection = selection;
-    },
-    addEmployee() {
-      this.$message.info("点击了添加员工按钮");
-    },
-    deleteSelected() {
-      if (this.multipleSelection.length === 0) {
-        this.$message.warning("请选择要删除的员工");
-        return;
-      }
-      this.$confirm("确定删除选中的员工吗?", "批量删除", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      })
-        .then(() => {
-          const ids = this.multipleSelection.map((item) => item.id);
-          this.$axios
-            .post("/api/employees/batchDelete", ids)
-            .then((res) => {
-              if (res.data.success) {
-                this.$message.success("删除成功");
-                this.getEmployeeList();
-              } else {
-                this.$message.error("删除失败");
-              }
-            })
-            .catch(() => {
-              this.$message.error("删除失败，请稍后重试");
-            });
-        })
-        .catch(() => {
-          this.$message.info("已取消删除");
-        });
-    },
-    deleteEmployee(id) {
-      this.$confirm("确定删除该员工吗?", "删除员工", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      })
-        .then(() => {
-          this.$axios.delete(`/api/employees/${id}`).then((res) => {
-            if (res.data.success) {
-              this.$message.success("删除成功");
-              this.getEmployeeList();
-            } else {
-              this.$message.error("删除失败");
-            }
-          });
-=======
 
     // 选中员工变化
     handleSelectionChange(selection) {
@@ -166,7 +118,7 @@ export default {
       this.$router.push({ name: "addEmployee" }); // 假设你有一个添加员工的页面
     },
 
-// 删除选中员工（批量删除）
+// 批量删除选中员工
 deleteSelected() {
   if (this.multipleSelection.length === 0) {
     this.$message.warning("请选择要删除的员工");
@@ -178,42 +130,28 @@ deleteSelected() {
     type: "warning",
   })
     .then(() => {
-      // 获取选中员工的 ID 列表
       const ids = this.multipleSelection.map((item) => item.id);
 
-      // 调用批量删除接口
       this.$axios
-        .delete("/api/employees/delByIds", { data: ids }) // DELETE 请求传递数据
+        .delete("/api/employees/delByIds", { data: ids })
         .then((res) => {
-          // 打印返回数据，方便调试
-          console.log("批量删除接口返回:", res.data);
-
-          // 根据后端返回的字段结构进行判断
+          // 如果后端返回的 code 为 1，说明删除成功
           if (res.data && res.data.code === 1) {
-            this.$message.success(res.data.data || "批量删除成功"); // 后端返回的 success 信息
-            this.getEmployeeList(); // 刷新员工列表
+            this.$message.success("批量删除成功"); // 始终使用中文提示
+            this.getEmployeeList(); // 删除成功后刷新列表
           } else {
-            this.$message.error(res.data.msg || "批量删除失败"); // 返回的错误信息
+            this.$message.error(res.data.msg || "批量删除失败"); // 如果有返回的 msg，则显示，否则默认提示
           }
->>>>>>> 288fcb7eaed4a463b76678859dc4b94b34fb2541
         })
         .catch((error) => {
-          // 捕获接口调用错误
           console.error("批量删除失败:", error);
           this.$message.error("批量删除失败，请稍后重试");
         });
-<<<<<<< HEAD
-    },
-    editEmployee(row) {
-      this.$message.info(`编辑员工：${row.name}`);
-=======
     })
     .catch(() => {
-      // 用户取消操作
       this.$message.info("已取消删除");
     });
-}
-,
+},
 
 // 删除单个员工
 deleteEmployee(id) {
@@ -223,39 +161,30 @@ deleteEmployee(id) {
     type: "warning",
   })
     .then(() => {
-      // 调用删除接口
       this.$axios
         .delete(`/api/employees/delete/${id}`)
         .then((res) => {
-          // 打印返回数据，方便调试
-          console.log("删除接口返回:", res.data);
-
-          // 根据后端返回的字段结构进行判断
+          // 如果后端返回的 code 为 1，说明删除成功
           if (res.data && res.data.code === 1) {
-            this.$message.success(res.data.data || "删除成功"); // 后端返回的 success 信息
-            this.getEmployeeList(); // 刷新员工列表
+            this.$message.success("删除成功"); // 始终使用中文提示
+            this.getEmployeeList(); // 删除成功后刷新列表
           } else {
-            this.$message.error(res.data.msg || "删除失败"); // 返回的错误信息
+            this.$message.error(res.data.msg || "删除失败"); // 如果有返回的 msg，则显示，否则默认提示
           }
         })
         .catch((error) => {
-          // 捕获接口调用错误
           console.error("删除失败:", error);
           this.$message.error("删除失败，请稍后重试");
         });
     })
     .catch(() => {
-      // 用户取消操作
       this.$message.info("已取消删除");
     });
-}
-
-,
+},
 
     // 编辑员工
     editEmployee(row) {
       this.$router.push({ name: "editEmployee", params: { id: row.id } });
->>>>>>> 288fcb7eaed4a463b76678859dc4b94b34fb2541
     },
   },
 };

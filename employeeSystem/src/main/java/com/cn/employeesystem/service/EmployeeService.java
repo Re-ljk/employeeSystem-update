@@ -1,30 +1,35 @@
 package com.cn.employeesystem.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cn.employeesystem.entity.Employee;
-import com.cn.employeesystem.entity.Page;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 
 public interface EmployeeService {
-    public List<Employee> findAllEmployee();
 
-//    Employee findEmployeeById(int id);
-    public Employee findEmployeeById(String id);
+    // 查询所有员工
+    List<Employee> findAllEmployee();
 
-    public  boolean insertEmployee(Employee employee);
+    // 根据 ID 查询员工
+    Employee findEmployeeById(String id);
 
-    public boolean updateEmployee(Employee employee);
+    // 插入新员工
+    boolean insertEmployee(Employee employee);
 
+    // 更新员工信息
+    boolean updateEmployee(Employee employee);
 
-    public boolean deleteEmployee(String id);
+    // 删除员工
+    boolean deleteEmployee(String id);
 
-//    Page<Employee> findAllEmployee(int currentPage, int pageSize);
-//
-//    Page<Employee> findEmployeeByPage(int currentPage, int pageSize);
+    // 分页查询员工列表
+    IPage<Employee> findEmployeesByPage(int currentPage, int pageSize);
 
-    Page<Employee> findEmployeesByPage(int currentPage, int pageSize);
+    // 批量删除员工
+    boolean deleteItemsByIds(List<Integer> ids);
 
+    // 根据姓名搜索员工
+    IPage<Employee> searchEmployeesByName(String name, int currentPage, int pageSize);
 
-    public boolean deleteItemsByIds(@Param("ids") List<Integer> ids);
+    // 分页查询员工信息和部门名称
+    IPage<Employee> findEmployeesWithDeptName(int offset, int pageSize);
 }
